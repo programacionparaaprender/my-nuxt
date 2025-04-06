@@ -78,6 +78,10 @@
   </template>
   
   <script>
+  import { GetAllTaskCase } from '../../application/tasks/usecases/get-all-task.usecase';
+  import { CreateTaskUseCase } from '../../application/tasks/usecases/create-task.usecase';
+  import { UpdateTaskUseCase } from '../../application/tasks/usecases/update-task.usecase';
+  import { DeleteTaskUseCase } from '../../application/tasks/usecases/delete-task.usecase';
   export default {
     data() {
       return {
@@ -90,14 +94,17 @@
           { id: 3, name: "Terminado" }
         ],
         editIndex: null,
-        editTask: { name: "", state: null }
+        editTask: { name: "", state: null },
+        getAllTaskCase: new GetAllTaskCase(),
+        createTaskUseCase: new CreateTaskUseCase(),
+        updateTaskUseCase: new UpdateTaskUseCase(),
+        deleteTaskUseCase: new DeleteTaskUseCase()
       };
     },
     mounted(){
-        const tasks = localStorage.getItem(this.key);
-        if(tasks != null){
-            this.tasks = JSON.parse(tasks);
-        }
+        const response = this.getAllTaskCase.execute();
+        this.tasks = response.dates;
+
     },
     methods: {
       saveTask() {
@@ -116,7 +123,7 @@
           name: this.name,
           state: 1
         });
-        localStorage.setItem(this.key, JSON.stringify(this.tasks));
+        this.createTaskUseCase.execute(this.tasks);
         this.name = "";
       },
       editTaskMethod(index) {
@@ -126,11 +133,11 @@
       saveEdit(index) {
         this.tasks[index] = { ...this.editTask };
         this.editIndex = null;
-        localStorage.setItem(this.key, JSON.stringify(this.tasks));
+        this.updateTaskUseCase.execute(this.tasks);
       },
       deleteTask(index) {
         this.tasks.splice(index, 1);
-        localStorage.setItem(this.key, JSON.stringify(this.tasks));
+        this.deleteTaskUseCase.execute(index);
       },
       getStateName(stateId) {
         const state = this.states.find(s => s.id === stateId);
